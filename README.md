@@ -25,11 +25,11 @@ Creating the AI model in MindsDB
 
 2.  Navigate to the MindsDB editor. You can find it [HERE](https://cloud.mindsdb.com/editor).
 
-3.  Create your AI model. In this example, we're creating an OpenAI GPT4 model named `gpt4-hass`. 
-You can replace `gpt4-hass` with your preferred model name. Execute the following SQL query to create your model:
+3.  Create your AI model. In this example, we're creating an OpenAI GPT4 model named `gpt4hass`. 
+You can replace `gpt4hass` with your preferred model name. Execute the following SQL query to create your model:
 
 ```sql
-CREATE  MODEL mindsdb.gpt4-hass
+CREATE  MODEL mindsdb.gpt4hass
 PREDICT response
 USING
   engine  =  'openai',
@@ -90,7 +90,7 @@ openassist:
 sensor:
   - platform: openassist
     your_name: "YOUR_NAME" #Optional if you want ChatGPT to know your name.
-    mindsdb_model: "gpt4-hass" #MINDSDB MODEL NAME.
+    mindsdb_model: "gpt4hass" #MINDSDB MODEL NAME.
     mindsdb_cookie: ".eJw9i8sKgCAUBf_...." #MINDSDB SESSION COOKIE
     notify_device: "alexa_media_office_echo" #Optional, this sends each ChatGPT response to your notify entity.
     #Can be any of your Notify entities. (Phone, Amazon Echo etc)
