@@ -1,0 +1,10 @@
+{
+    "domain": "openassist",
+    "name": "OpenAssist",
+    "documentation": "https://github.com/Hassassistant/OpenAssist",
+    "dependencies": [],
+    "codeowners": ["@hassassistant"],
+    "extra_quality_scale": "platinum",
+    "version": "0.1.0",
+    "requirements": ["PyYAML==6.0", "openai==0.27.0"]
+}
