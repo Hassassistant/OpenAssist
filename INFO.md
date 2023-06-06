@@ -11,7 +11,7 @@ Prerequisites
 
 You need to have the following accounts and their corresponding keys:
 
--   **[Pinecone:](https://app.pinecone.io/)** You need a **Pinecone account** with an **API key**, along with the **Environment ID** (example: *northamerica-northeast1-gcp*).
+-   **[Pinecone:](https://app.pinecone.io/)** You need a **Pinecone account** with an **API key**, along with the **Environment ID** (example: *us-west1-gcp-free*).
 -   **[OpenAI:](https://platform.openai.com/playground/)** You need an **OpenAI API key**, used for embedding.
 -   **[MindsDB](https://mindsdb.com/):** You'll need a **MindsDB account**, a **session cookie**, and the name of your **MindsDB model**.
 
@@ -25,11 +25,11 @@ Creating the AI model in MindsDB
 
 2.  Navigate to the MindsDB editor. You can find it [HERE](https://cloud.mindsdb.com/editor).
 
-3.  Create your AI model. In this example, we're creating an OpenAI GPT4 model named `gpt4-hass`. 
-You can replace `gpt4-hass` with your preferred model name. Execute the following SQL query to create your model:
+3.  Create your AI model. In this example, we're creating an OpenAI GPT4 model named `gpt4hass`. 
+You can replace `gpt4hass` with your preferred model name. Execute the following SQL query to create your model:
 
 ```sql
-CREATE  MODEL mindsdb.gpt4-hass
+CREATE  MODEL mindsdb.gpt4hass
 PREDICT response
 USING
   engine  =  'openai',
@@ -47,7 +47,24 @@ USING
     -   Look for the **Editor** or **Home** element.
     -   Go to the Cookies tab and copy the Session Cookie.
         It should look something like this ***".eJw9i8sKgCAUBf_lrl2UlUY...iTsfiAsSdp0Y0yWuDsBE3vdtII"***<br>
+        
 ![enter image description here](https://github.com/Hassassistant/OpenMindsAI/blob/main/misc/cookie.png?raw=true)
+
+Pinecone API Key and Environment ID
+-------------
+1.  Create a free account on Pinecone and login. You can do so [HERE](https://app.pinecone.io/).
+2.  Wait for **"Project Initializing"** to finish.
+3.  Navigate to the Pinecone API Key page and take note of the API Key (Value) and Environment ID. <br>
+
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/pinecone.PNG?raw=true)
+
+OpenAI API Key
+-------------
+1.  Create a free account on Openai Playground and login. You can do so [HERE](https://platform.openai.com/playground/).
+2.  Navigate to the OpenAI API Keys page. You can do so [HERE](https://platform.openai.com/account/api-keys).<br>
+3.  Create a new secret key, and take note of the API Key.
+
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/openai.PNG?raw=true)
 
 Configuration
 -------------
@@ -68,12 +85,12 @@ input_text:
 openassist:
   openai_key: "sk-...s1jz" #YOUR_OPENAI_KEY  
   pinecone_key: "b9a09c6a-...db2" #YOUR_PINECONE_ENVIRONMENT ID
-  pinecone_env: "northamerica-northeast1-gcp" #YOUR_PINECONE_ENVIRONMENT ID
+  pinecone_env: "us-west1-gcp-free" #YOUR_PINECONE_ENVIRONMENT ID
 
 sensor:
   - platform: openassist
     your_name: "YOUR_NAME" #Optional if you want ChatGPT to know your name.
-    mindsdb_model: "gpt4-hass" #MINDSDB MODEL NAME.
+    mindsdb_model: "gpt4hass" #MINDSDB MODEL NAME.
     mindsdb_cookie: ".eJw9i8sKgCAUBf_...." #MINDSDB SESSION COOKIE
     notify_device: "alexa_media_office_echo" #Optional, this sends each ChatGPT response to your notify entity.
     #Can be any of your Notify entities. (Phone, Amazon Echo etc)
@@ -84,3 +101,43 @@ logger:
   logs:
     custom_components.openassist: debug
  ```
+Example Lovelace Card
+-------------
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/card_example.PNG?raw=true)
+
+```yaml
+square: false
+columns: 1
+type: grid
+cards:
+  - type: entities
+    entities:
+      - entity: input_text.openassist_prompt
+        name: OpenAssist
+      - entity: input_text.pinecone_index
+        name: Index Creation (Please type your ENV ID and hit enter)
+  - type: markdown
+    content: '{{ state_attr(''sensor.openassist_response'', ''message'') }}'
+    title: OpenAssist Response 
+ ```
+How to use
+-------------
+1. Type in your Pinecone Environment ID in the Pinecone Index input_boolean.
+2. Hit enter.
+3. Your Pinecone index will be created, this will then upload all your Home Assistant entity data to the index.
+Please allow 10 - 15 minutes for the proccess to complete, dependant on how many entites you have.
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/index%20creation.PNG?raw=true)
+4. Notifications on the Index creation will be send to the OpenAssist Response entity.
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/1.PNG?raw=true)
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/2.PNG?raw=true)
+5. Send a question or query.
+**Example 1**
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%201.PNG?raw=true)
+**Example 2**
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%202.PNG?raw=true)
+**Example 3**
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%203.PNG?raw=true)
+**Example 4**
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%204.PNG?raw=true)
+
+
