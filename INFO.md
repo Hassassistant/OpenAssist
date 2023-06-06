@@ -136,8 +136,9 @@ USING
 Pinecone API Key and Environment ID
 -------------
 1.  Create a free account on Pinecone and login. You can do so [HERE](https://app.pinecone.io/).
-2.  Wait for **"Project Initializing"** to finish.
-3.  Navigate to the Pinecone API Key page and take note of the API Key (Value) and Environment ID. <br>
+2.  Create your first project. (Free tier)
+4.  Wait for **"Project Initializing"** to finish.
+5.  Navigate to the Pinecone API Key page and take note of the API Key (Value) and Environment ID. <br>
 
 ![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/pinecone.PNG?raw=true)
 
