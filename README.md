@@ -1,6 +1,12 @@
 <a href="https://www.buymeacoffee.com/hassassistant" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a><br>
-Home Assistant OpenAI GPT4 with Pinecone Index
+Home Assistant OpenAI GPT4 with Pinecone Index - Beta
 ==============================================
+<br>
+
+***Hey there! Just wanted to let you know that this project is still in the beta stage. Sure, it's functional, but it's got a couple of quirks (like not always finding the right entities after a query).***
+
+***This is a one-man show and I'm knee-deep in the development process. I'm open to any ideas from the community. Your suggestions could really help in shaping this into something spectacular. So, dive in!***
+<br><br><br>
 
 This Home Assistant custom component creates a **Pinecone index** containing all your Home Assistant entity details. This allows you to make queries or ask questions using the `input_boolean.openassist_prompt`, such as "turn my kitchen light off" or "what's the current state of my kitchen light". 
 
