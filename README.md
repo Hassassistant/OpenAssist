@@ -74,7 +74,8 @@ How to use
 1. Type in your Pinecone Environment ID in the Pinecone Index input_boolean.
 2. Hit enter.
 3. Your Pinecone index will be created, this will then upload all your Home Assistant entity data to the index.
-Please allow 10 - 15 minutes for the proccess to complete, dependant on how many entites you have.<br>
+Please allow 10 - 15 minutes for the proccess to complete, dependant on how many entites you have.<br><br>
+**Be aware: There is a known issue in Pinecone free tier, creation of new indexes getting stuck in a loop. This is out of my control, on one occasion I abandoned the index creation, and started this whole proccess again with a new Pinecone account.**<br><br>
 ![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/index%20creation.PNG?raw=true)<br><br>
 4. Notifications on the Index creation will be send to the OpenAssist Response entity.<br>
 ![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/1.PNG?raw=true)<br>
