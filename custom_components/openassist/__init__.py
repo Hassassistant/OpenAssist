@@ -141,7 +141,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
                         "metric": "cosine",
                         "pods": 1,
                         "replicas": 1,
-                        "pod_type": "p1.x1"
+                        "pod_type": "s1.x1"
                     }
                     try:
                         response = await hass.async_add_executor_job(post_request_pinecone, f'https://controller.{environment_str}.pinecone.io/databases', headers, index_payload)
