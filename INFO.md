@@ -1,72 +1,86 @@
-<img src="https://github.com/Hassassistant/openai_response/blob/main/misc/ChatGPT_image.PNG?raw=true"
-     width="20%"
-     align="right"
-     style="float: right; margin: 10px 0px 20px 20px;" />
 
-# Home Assistant OpenAI Response Sensor
+Home Assistant OpenAI GPT4 with Pinecone Index
+==============================================
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
+This Home Assistant custom component creates a **Pinecone index** containing all your Home Assistant entity details. This allows you to make queries or ask questions using the `input_boolean.openassist_prompt`, such as "turn my kitchen light off" or "what's the current state of my kitchen light". 
 
-This custom component for Home Assistant allows you to generate text responses using OpenAI's GPT-3 model.
+This query is sent to the Pinecone index to find the closest matching entity, which is then sent to the **ChatGPT4** model, returning the necessary data to perform the corresponding service call action.
 
-Head to **[This Link](https://platform.openai.com/account/api-keys)** to get you API key from OpenAI. 
+Prerequisites
+-------------
 
-<img src="https://raw.githubusercontent.com/Hassassistant/openai_response/main/misc/Capture1.jpg"
-     width="80%" />
+You need to have the following accounts and their corresponding keys:
+
+-   **[Pinecone:](https://app.pinecone.io/)** You need a **Pinecone account** with an **API key**, along with the **Environment ID** (example: *northamerica-northeast1-gcp*).
+-   **[OpenAI:](https://platform.openai.com/playground/)** You need an **OpenAI API key**, used for embedding.
+-   **[MindsDB](https://mindsdb.com/):** You'll need a **MindsDB account**, a **session cookie**, and the name of your **MindsDB model**.
 
 
 
-## Installation
-**1.** Copy the **openai_response** folder to your Home Assistant's custom_components directory. If you don't have a **custom_components** directory, create one in the same directory as your **configuration.yaml** file.
 
-**2.** Add the following lines to your Home Assistant **configuration.yaml** file:
+Creating the AI model in MindsDB
+--------------------------------
 
-```yaml
-sensor:
-  - platform: openai_response
-    api_key: YOUR_OPENAI_API_KEY
-    model: "text-davinci-003" # Optional, defaults to "text-davinci-003"
-    name: "hassio_openai_response" # Optional, defaults to "hassio_openai_response"
+1.  Create a free account on MindsDB and login. You can do so [HERE](https://cloud.mindsdb.com/login).
+
+2.  Navigate to the MindsDB editor. You can find it [HERE](https://cloud.mindsdb.com/editor).
+
+3.  Create your AI model. In this example, we're creating an OpenAI GPT4 model named `gpt4-hass`. 
+You can replace `gpt4-hass` with your preferred model name. Execute the following SQL query to create your model:
+
+```sql
+CREATE  MODEL mindsdb.gpt4-hass
+PREDICT response
+USING
+  engine  =  'openai',
+  max_tokens =  2000,
+  model_name =  'gpt-4',
+  prompt_template =  '{{text}}';
 ```
-Replace **YOUR_OPENAI_API_KEY** with your actual OpenAI API key.
 
-**3.** Restart Home Assistant.
+   Click **"Run"** to execute the query and create your model.
 
-## Usage
-Create an **input_text.gpt_input** entity in Home Assistant to serve as the input for the GPT-3 model. Add the following lines to your configuration.yaml file:
+4.  Obtain your MindsDB Session Cookie for authentication within Home Assistant. Here's how:
+
+    -   Log into MindsDB and open your web browser's Inspect Element tool.
+    -   Navigate to the Network tab and refresh the webpage (F5).
+    -   Look for the **Editor** or **Home** element.
+    -   Go to the Cookies tab and copy the Session Cookie.
+        It should look something like this ***".eJw9i8sKgCAUBf_lrl2UlUY...iTsfiAsSdp0Y0yWuDsBE3vdtII"***<br>
+![enter image description here](https://github.com/Hassassistant/OpenMindsAI/blob/main/misc/cookie.png?raw=true)
+
+Configuration
+-------------
+
+Example layout of the `configuration.yaml`:
 
 ```yaml
+
 input_text:
-  gpt_input:
-    name: GPT-3 Input
-```
-Note you can also create this input_text via the device helpers page!
+  openassist_prompt:
+    initial: ""
+    max: 255
 
-If you are creating via YAML, you will need to restart again to activate the new entity,
+  pinecone_index:
+    initial: ""
+    max: 255
 
-To generate a response from GPT-3, update the **input_text.gpt_input** entity with the text you want to send to the model. The generated response will be available as an attribute of the **sensor.hassio_openai_response** entity.
+openassist:
+  openai_key: "sk-...s1jz" #YOUR_OPENAI_KEY  
+  pinecone_key: "b9a09c6a-...db2" #YOUR_PINECONE_ENVIRONMENT ID
+  pinecone_env: "northamerica-northeast1-gcp" #YOUR_PINECONE_ENVIRONMENT ID
 
-## Example
-To display the GPT-3 input and response in your Home Assistant frontend, add the following to your **ui-lovelace.yaml** file or create a card in the Lovelace UI:
+sensor:
+  - platform: openassist
+    your_name: "YOUR_NAME" #Optional if you want ChatGPT to know your name.
+    mindsdb_model: "gpt4-hass" #MINDSDB MODEL NAME.
+    mindsdb_cookie: ".eJw9i8sKgCAUBf_...." #MINDSDB SESSION COOKIE
+    notify_device: "alexa_media_office_echo" #Optional, this sends each ChatGPT response to your notify entity.
+    #Can be any of your Notify entities. (Phone, Amazon Echo etc)
 
-```yaml
-type: grid
-square: false
-columns: 1
-cards:
-  - type: entities
-    entities:
-      - entity: input_text.gpt_input
-  - type: markdown
-    content: '{{ state_attr(''sensor.hassio_openai_response'', ''response_text'') }}'
-    title: ChatGPT Response
-```
-Now you can type your text in the GPT-3 Input field, and the generated response will be displayed in the response card.
-
-<img src="https://github.com/Hassassistant/openai_response/blob/main/misc/Card.PNG"
-     width="50%" />
-
-## License
-This project is licensed under the MIT License - see the **[LICENSE](https://chat.openai.com/LICENSE)** file for details.
-
-**Disclaimer:** This project is not affiliated with or endorsed by OpenAI. Use the GPT-3 API at your own risk, and be aware of the API usage costs associated with the OpenAI API.
+# If you need to debug any issues.
+logger:
+  default: info
+  logs:
+    custom_components.openassist: debug
+ ```
