@@ -6,6 +6,89 @@ This Home Assistant custom component creates a **Pinecone index** containing all
 
 This query is sent to the Pinecone index to find the closest matching entity, which is then sent to the **ChatGPT4** model, returning the necessary data to perform the corresponding service call action.
 
+Integration Install
+-------------
+1. **(Manual)** Copy the **OpenMindsAI** folder to your Home Assistant's custom_components directory. If you don't have a **custom_components** directory, create one in the same directory as your **configuration.yaml** file.
+
+**(HACS)** Add this repository as a HACS Integration: https://github.com/Hassassistant/openassist
+
+2. Restart Home Assistant.
+
+3. Add the following lines to your Home Assistant **configuration.yaml** file:
+***(See below for prerequisites)***
+
+```yaml
+input_text:
+  openassist_prompt:
+    initial: ""
+    max: 255
+
+  pinecone_index:
+    initial: ""
+    max: 255
+
+openassist:
+  openai_key: "sk-...s1jz" #YOUR_OPENAI_KEY  
+  pinecone_key: "b9a09c6a-...db2" #YOUR_PINECONE_ENVIRONMENT ID
+  pinecone_env: "us-west1-gcp-free" #YOUR_PINECONE_ENVIRONMENT ID
+
+sensor:
+  - platform: openassist
+    your_name: "YOUR_NAME" #Optional if you want ChatGPT to know your name.
+    mindsdb_model: "gpt4hass" #MINDSDB MODEL NAME.
+    mindsdb_cookie: ".eJw9i8sKgCAUBf_...." #MINDSDB SESSION COOKIE
+    notify_device: "alexa_media_office_echo" #Optional, this sends each ChatGPT response to your notify entity.
+    #Can be any of your Notify entities. (Phone, Amazon Echo etc)
+
+# If you need to debug any issues.
+logger:
+  default: info
+  logs:
+    custom_components.openassist: debug
+ ```
+
+
+4. Restart Home Assistant.
+
+Example Lovelace Card
+-------------
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/card_example.PNG?raw=true)
+
+```yaml
+square: false
+columns: 1
+type: grid
+cards:
+  - type: entities
+    entities:
+      - entity: input_text.openassist_prompt
+        name: OpenAssist
+      - entity: input_text.pinecone_index
+        name: Index Creation (Please type your ENV ID and hit enter)
+  - type: markdown
+    content: '{{ state_attr(''sensor.openassist_response'', ''message'') }}'
+    title: OpenAssist Response 
+ ```
+How to use
+-------------
+1. Type in your Pinecone Environment ID in the Pinecone Index input_boolean.
+2. Hit enter.
+3. Your Pinecone index will be created, this will then upload all your Home Assistant entity data to the index.
+Please allow 10 - 15 minutes for the proccess to complete, dependant on how many entites you have.<br>
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/index%20creation.PNG?raw=true)<br><br>
+4. Notifications on the Index creation will be send to the OpenAssist Response entity.<br>
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/1.PNG?raw=true)<br>
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/2.PNG?raw=true)<br>
+5. Send a question or query.<br>
+**Example 1**<br>
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%201.PNG?raw=true)<br>
+**Example 2**<br>
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%202.PNG?raw=true)<br>
+**Example 3**<br>
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%203.PNG?raw=true)<br>
+**Example 4**<br>
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%204.PNG?raw=true)
+
 Prerequisites
 -------------
 
@@ -65,79 +148,3 @@ OpenAI API Key
 3.  Create a new secret key, and take note of the API Key.
 
 ![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/openai.PNG?raw=true)
-
-Configuration
--------------
-
-Example layout of the `configuration.yaml`:
-
-```yaml
-
-input_text:
-  openassist_prompt:
-    initial: ""
-    max: 255
-
-  pinecone_index:
-    initial: ""
-    max: 255
-
-openassist:
-  openai_key: "sk-...s1jz" #YOUR_OPENAI_KEY  
-  pinecone_key: "b9a09c6a-...db2" #YOUR_PINECONE_ENVIRONMENT ID
-  pinecone_env: "us-west1-gcp-free" #YOUR_PINECONE_ENVIRONMENT ID
-
-sensor:
-  - platform: openassist
-    your_name: "YOUR_NAME" #Optional if you want ChatGPT to know your name.
-    mindsdb_model: "gpt4hass" #MINDSDB MODEL NAME.
-    mindsdb_cookie: ".eJw9i8sKgCAUBf_...." #MINDSDB SESSION COOKIE
-    notify_device: "alexa_media_office_echo" #Optional, this sends each ChatGPT response to your notify entity.
-    #Can be any of your Notify entities. (Phone, Amazon Echo etc)
-
-# If you need to debug any issues.
-logger:
-  default: info
-  logs:
-    custom_components.openassist: debug
- ```
-Example Lovelace Card
--------------
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/card_example.PNG?raw=true)
-
-```yaml
-square: false
-columns: 1
-type: grid
-cards:
-  - type: entities
-    entities:
-      - entity: input_text.openassist_prompt
-        name: OpenAssist
-      - entity: input_text.pinecone_index
-        name: Index Creation (Please type your ENV ID and hit enter)
-  - type: markdown
-    content: '{{ state_attr(''sensor.openassist_response'', ''message'') }}'
-    title: OpenAssist Response 
- ```
-How to use
--------------
-1. Type in your Pinecone Environment ID in the Pinecone Index input_boolean.
-2. Hit enter.
-3. Your Pinecone index will be created, this will then upload all your Home Assistant entity data to the index.
-Please allow 10 - 15 minutes for the proccess to complete, dependant on how many entites you have.
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/index%20creation.PNG?raw=true)
-4. Notifications on the Index creation will be send to the OpenAssist Response entity.
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/1.PNG?raw=true)
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/2.PNG?raw=true)
-5. Send a question or query.
-**Example 1**
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%201.PNG?raw=true)
-**Example 2**
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%202.PNG?raw=true)
-**Example 3**
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%203.PNG?raw=true)
-**Example 4**
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/query%204.PNG?raw=true)
-
-
