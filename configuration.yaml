@@ -1,0 +1,20 @@
+input_text:
+  openassist_prompt:
+    initial: ""
+    max: 255
+
+  pinecone_index:
+    initial: ""
+    max: 255
+
+openassist:
+  openai_key: ""
+  pinecone_key: ""
+  pinecone_env: ""
+
+sensor:
+  - platform: openassist
+    your_name: ""
+    mindsdb_model: ""
+    mindsdb_cookie: ""
+    notify_device: ""
