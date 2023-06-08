@@ -68,13 +68,18 @@ type: grid
 cards:
   - type: entities
     entities:
-      - entity: input_text.openassist_prompt
-        name: OpenAssist
       - entity: input_text.pinecone_index
         name: Index Creation (Please type your ENV ID and hit enter)
   - type: markdown
+    content: '{{ state_attr(''sensor.openassist_response'', ''index_status'') }}'
+    title: Pinecone Index Status
+  - type: entities
+    entities:
+      - entity: input_text.openassist_prompt
+        name: OpenAssist
+  - type: markdown
     content: '{{ state_attr(''sensor.openassist_response'', ''message'') }}'
-    title: OpenAssist Response 
+    title: OpenAssist Response
  ```
 How to use
 -------------
