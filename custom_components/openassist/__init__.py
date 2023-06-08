@@ -95,7 +95,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
     entities = filter_entities(all_entities, included_domains)
     
     # Write filtered entities to new json file
-    write_filtered_entities_to_file(entities, '/config/custom_components/openassist/test/filtered_entities.json')
+    write_filtered_entities_to_file(entities, '/config/custom_components/openassist/docs/filtered_entities.json')
 
 
     async def state_change_handler(event):
