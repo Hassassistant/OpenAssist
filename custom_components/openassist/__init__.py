@@ -5,6 +5,7 @@ import requests
 import yaml
 import time
 import asyncio
+import aiohttp
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.const import EVENT_STATE_CHANGED
@@ -19,9 +20,18 @@ MODEL = "text-embedding-ada-002"
 
 index_name = "entities"
 
-with open('/config/.storage/core.entity_registry', 'r') as f:
-    entities = json.load(f)["data"]["entities"]
+# Function to filter entities by domain
+def filter_entities(entities, domains):
+    filtered_entities = {}
+    for entity in entities:
+        for domain in domains:
+            if entity["entity_id"].startswith(f"{domain}."):
+                filtered_entities[entity["entity_id"]] = entity
+    return filtered_entities
 
+def write_filtered_entities_to_file(entities, filename):
+    with open(filename, 'w') as f:
+        json.dump(entities, f)
 
 
 def create_embedding(input, model):
@@ -61,7 +71,6 @@ def post_request_pinecone(url, headers, json_payload):
 
 
 
-
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the OpenAI Assistant component."""
     _LOGGER.debug("Setting up OpenAssist")
@@ -74,6 +83,19 @@ async def async_setup(hass: HomeAssistant, config: dict):
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     }
+
+    # Get the included domains from the configuration, split by comma and strip whitespaces
+    included_domains = [domain.strip() for domain in conf['included_domains'].split(',')]
+
+    # Open the file and load the entities
+    with open('/config/.storage/core.entity_registry', 'r') as f:
+        all_entities = json.load(f)["data"]["entities"]
+
+    # Filter the entities
+    entities = filter_entities(all_entities, included_domains)
+    
+    # Write filtered entities to new json file
+    write_filtered_entities_to_file(entities, '/config/custom_components/openassist/test/filtered_entities.json')
 
 
     async def state_change_handler(event):
@@ -103,7 +125,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
                 payload = {
                     "vector": list(xq),
                     "includeMetadata": True,
-                    "topK": 1
+                    "topK": 2
                 }
                 _LOGGER.debug("Payload prepared, sending POST request to Pinecone")
                 response_json = await hass.async_add_executor_job(post_request, url, headers, payload)
@@ -119,6 +141,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
         """Handle an OpenAssist state change."""
         entity_id = event.data.get("entity_id")
 
+
         if entity_id == "input_text.pinecone_index":
             environment = event.data.get("new_state")
             if environment is not None:
@@ -127,7 +150,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
                 response = await hass.async_add_executor_job(
                     get_request_pinecone,
                     f'https://controller.{environment_str}.pinecone.io/databases',
-                    headers  # add headers here
+                    headers 
                 )
 
                 existing_indexes = response
@@ -141,7 +164,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
                         "metric": "cosine",
                         "pods": 1,
                         "replicas": 1,
-                        "pod_type": "s1.x1"
+                        "pod_type": "p1.x1"
                     }
                     try:
                         response = await hass.async_add_executor_job(post_request_pinecone, f'https://controller.{environment_str}.pinecone.io/databases', headers, index_payload)
@@ -165,20 +188,28 @@ async def async_setup(hass: HomeAssistant, config: dict):
                     if status == 'Ready':
                         _LOGGER.debug("Index is ready.")
                         _LOGGER.debug("Waiting an additional 3 minutes before beginning upsert operations...")
-                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "Index created! Data upload will begin in 3 minutes."})
-                        await asyncio.sleep(180)
+                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "The Pinecone Index has been created. Entity Data upload will begin in 3 minutes."})
+                        await asyncio.sleep(60)
+                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "2 minutes until data upload."})
+                        await asyncio.sleep(60)
+                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "1 minutes until data upload."})
+                        await asyncio.sleep(30)
+                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "30 seconds until data upload."})
+                        await asyncio.sleep(30)
                         break
 
                     else:
                         _LOGGER.debug("Index is not ready yet, waiting for 5 seconds...")
                         await asyncio.sleep(5)  # use asyncio.sleep instead of time.sleep
 
-                # Pinecone service url (updated to include the host)
+                # Pinecone service url
                 url = f"https://{host}"
 
+
+
                 # Populate the index
-                hass.states.async_set("sensor.openassist_response", "Upserting data", {"message": "Upserting data. You will be notified once complete."})
-                for entity in entities:
+                hass.states.async_set("sensor.openassist_response", "Upserting data", {"message": "Uploading entity data. You will be notified once complete."})
+                for entity in entities.values():
                     # Create a string representation of the entity
                     entity_str = json.dumps(entity)
                     # Create the embedding
@@ -186,9 +217,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
                     _LOGGER.debug(f"res: {res}")
                     embed = res
 
-
                     # Create a new dictionary with only the fields we want
-                    metadata = {field: str(entity[field]) for field in ["device_id", "entity_id", "original_name", "platform", "unique_id", "unit_of_measurement"] if field in entity}
+                    metadata = {field: str(entity[field]) for field in ["entity_id", "original_name", "platform"] if field in entity}
 
                     # Define the payload to post
                     payload = {
@@ -209,8 +239,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
                             _LOGGER.debug(f"Upsert response: {response['text']}")
                         else:
                             _LOGGER.debug(f"Failed to upsert. HTTP status code: {response['status_code']}. Response: {response['text']}")
-                hass.states.async_set("sensor.openassist_response", "Ready", {"message": "Your Pinecone index is ready to use! Enjoy."})
 
+                hass.states.async_set("sensor.openassist_response", "Ready", {"message": "Your Pinecone index is ready to use! Enjoy."})
 
 
 
