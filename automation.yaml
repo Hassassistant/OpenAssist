@@ -1,19 +1,39 @@
-## Assuming you have the piper addon installed and added to your integrations.
-## This automation will command TTS Piper to read the OpenAssist response.
-
 alias: Piper TTS - Openassist
 description: ""
 trigger:
   - platform: state
     entity_id:
       - sensor.openassist_response
+    attribute: message
+    id: message
+  - platform: state
+    entity_id:
+      - sensor.openassist_response
+    attribute: index_status
+    id: index
 condition: []
 action:
-  - service: tts.speak
-    data:
-      cache: true
-      media_player_entity_id: media_player.your_media_player
-      message: "{{ state_attr('sensor.openassist_response', 'message') }}"
-    target:
-      entity_id: tts.piper
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: index
+        sequence:
+          - service: tts.speak
+            data:
+              cache: true
+              media_player_entity_id: media_player.your_media_entity
+              message: "{{ state_attr('sensor.openassist_response', 'index_status') }}"
+            target:
+              entity_id: tts.piper
+      - conditions:
+          - condition: trigger
+            id: message
+        sequence:
+          - service: tts.speak
+            data:
+              cache: true
+              media_player_entity_id: media_player.your_media_entity
+              message: "{{ state_attr('sensor.openassist_response', 'message') }}"
+            target:
+              entity_id: tts.piper
 mode: single
