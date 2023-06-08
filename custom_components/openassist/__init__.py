@@ -154,7 +154,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
                 )
 
                 existing_indexes = response
-                hass.states.async_set("sensor.openassist_response", "Building index", {"message": "Please wait while the Pinecone index gets built"})
+                hass.states.async_set("sensor.openassist_response", "Building index", {"index_status": "Please wait while the Pinecone index gets built"})
                 
                 if index_name not in existing_indexes:
                     # Create Pinecone index if it doesn't exist
@@ -188,13 +188,13 @@ async def async_setup(hass: HomeAssistant, config: dict):
                     if status == 'Ready':
                         _LOGGER.debug("Index is ready.")
                         _LOGGER.debug("Waiting an additional 3 minutes before beginning upsert operations...")
-                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "The Pinecone Index has been created. Entity Data upload will begin in 3 minutes."})
+                        hass.states.async_set("sensor.openassist_response", "Index Created", {"index_status": "The Pinecone Index has been created. Entity Data upload will begin in 3 minutes."})
                         await asyncio.sleep(60)
-                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "2 minutes until data upload."})
+                        hass.states.async_set("sensor.openassist_response", "2 Mins Until Upload", {"index_status": "2 minutes until data upload."})
                         await asyncio.sleep(60)
-                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "1 minutes until data upload."})
+                        hass.states.async_set("sensor.openassist_response", "1 Mins Until Upload", {"index_status": "1 minutes until data upload."})
                         await asyncio.sleep(30)
-                        hass.states.async_set("sensor.openassist_response", "Ready", {"message": "30 seconds until data upload."})
+                        hass.states.async_set("sensor.openassist_response", "30 Secs Until Upload", {"index_status": "30 seconds until data upload."})
                         await asyncio.sleep(30)
                         break
 
@@ -208,7 +208,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 
                 # Populate the index
-                hass.states.async_set("sensor.openassist_response", "Upserting data", {"message": "Uploading entity data. You will be notified once complete."})
+                hass.states.async_set("sensor.openassist_response", "Upserting data", {"index_status": "Uploading entity data. You will be notified once complete."})
                 for entity in entities.values():
                     # Create a string representation of the entity
                     entity_str = json.dumps(entity)
@@ -240,7 +240,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
                         else:
                             _LOGGER.debug(f"Failed to upsert. HTTP status code: {response['status_code']}. Response: {response['text']}")
 
-                hass.states.async_set("sensor.openassist_response", "Ready", {"message": "Your Pinecone index is ready to use! Enjoy."})
+                hass.states.async_set("sensor.openassist_response", "Ready", {"index_status": "Your Pinecone index is ready to use! Enjoy."})
 
 
 
