@@ -59,8 +59,7 @@ logger:
 
 Example Lovelace Card
 -------------
-![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/card_example.PNG?raw=true)
-
+![enter image description here](https://github.com/Hassassistant/OpenAssist/blob/main/misc/updated%20card.PNG)?raw=true)
 ```yaml
 square: false
 columns: 1
