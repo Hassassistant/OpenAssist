@@ -37,6 +37,7 @@ openassist:
   openai_key: "sk-...s1jz" #YOUR_OPENAI_KEY  
   pinecone_key: "b9a09c6a-...db2" #YOUR_PINECONE_ENVIRONMENT ID
   pinecone_env: "us-west1-gcp-free" #YOUR_PINECONE_ENVIRONMENT ID
+  included_domains: "light, weather" #WHICH DOMAINS TO INCLUDE IN PINECONE DB
 
 sensor:
   - platform: openassist
