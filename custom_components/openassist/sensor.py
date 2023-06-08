@@ -1,8 +1,4 @@
 import logging
-
-_LOGGER = logging.getLogger(__name__)
-_LOGGER.debug("OpenAssist component is being loaded")
-
 import aiohttp
 import voluptuous as vol
 import json
@@ -157,7 +153,6 @@ class OpenAssistSensor(Entity):
 
         _LOGGER.info(f"Prepared prompt for GPT-4: {prompt}")
 
-        
 
         _LOGGER.info("Getting GPT-4 response")
         response = await self.ask_mindsdb(prompt)
