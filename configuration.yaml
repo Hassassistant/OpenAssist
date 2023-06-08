@@ -11,7 +11,8 @@ openassist:
   openai_key: ""
   pinecone_key: ""
   pinecone_env: ""
-
+  included_domains: ""
+  
 sensor:
   - platform: openassist
     your_name: ""
