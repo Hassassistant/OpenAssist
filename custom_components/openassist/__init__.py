@@ -125,16 +125,22 @@ async def async_setup(hass: HomeAssistant, config: dict):
                 payload = {
                     "vector": list(xq),
                     "includeMetadata": True,
-                    "topK": 2
+                    "topK": 5
                 }
                 _LOGGER.debug("Payload prepared, sending POST request to Pinecone")
                 response_json = await hass.async_add_executor_job(post_request, url, headers, payload)
                 _LOGGER.debug("POST request to Pinecone complete, processing response")
-                match = response_json['matches'][0]
-                _LOGGER.debug(f"Pinecone match: {match['score']:.2f}: {match['metadata']}")
+
+                # Get metadata for all matches, convert them to strings and join them into a single string
+                all_matches_metadata = ', '.join([json.dumps(match['metadata']) for match in response_json['matches']])
+                _LOGGER.debug(f"All matches metadata: {all_matches_metadata}")
+
                 _LOGGER.debug("Firing OpenAssist update event")
-                hass.bus.async_fire(EVENT_OPENASSIST_UPDATE, {"new_state": new_state.state, "metadata": match['metadata']})
+                hass.bus.async_fire(EVENT_OPENASSIST_UPDATE, {"new_state": new_state.state, "metadata": all_matches_metadata})
                 _LOGGER.debug("OpenAssist update event fired")
+
+
+
 
 
     async def state_change_handler_pinecone(event):
