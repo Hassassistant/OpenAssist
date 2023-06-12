@@ -32,7 +32,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     name = config.get(CONF_NAME, DEFAULT_NAME)
     mindsdb_model = config['mindsdb_model']
     mindsdb_cookie = config['mindsdb_cookie']
-    notify_device = config.get('notify_device', 'alexa_media_kitchen_echo')
+    notify_device = config.get('notify_device', '')
     your_name = config.get('your_name', '')
     
     add_entities([OpenAssistSensor(name, mindsdb_model, mindsdb_cookie, notify_device, your_name)])
@@ -54,6 +54,7 @@ class OpenAssistSensor(Entity):
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=data, cookies=cookies, headers=headers) as resp:
                 response_json = await resp.json()
+        _LOGGER.info(f"MindsDB response: {response_json}")
         try:
             response_message = response_json[0]["response"]
         except KeyError:
@@ -147,8 +148,36 @@ class OpenAssistSensor(Entity):
             "Remember, all the keys in the dictionary ('domain', 'service', 'entity_id', 'data', 'message') are required. "
             "The 'data' key should always have a dictionary as its value, and this dictionary can contain any number of keys "
             "and values, depending on what the service requires.\n"
+            "If the questions refer to more than 1 actions, reply with the actions under the 'actions' key, and a single 'message' key to represent all actions."
+            "Example:\n\n"
+            "{\n"
+            "  \"actions\": [\n"
+            "    {\n"
+            "      \"domain\": \"The domain of the first service\",\n"
+            "      \"service\": \"The first service to be called\",\n"
+            "      \"entity_id\": \"The entity id to be affected by the first service\",\n"
+            "      \"data\": {\n"
+            "        \"key1\": \"value1\",\n"
+            "        \"key2\": \"value2\",\n"
+            "        ... and so on ...\n"
+            "      }\n"
+            "    },\n"
+            "    {\n"
+            "      \"domain\": \"The domain of the second service\",\n"
+            "      \"service\": \"The second service to be called\",\n"
+            "      \"entity_id\": \"The entity id to be affected by the second service\",\n"
+            "      \"data\": {\n"
+            "        \"key1\": \"value1\",\n"
+            "        \"key2\": \"value2\",\n"
+            "        ... and so on ...\n"
+            "      }\n"
+            "    }\n"
+            "  ],\n"
+            "  \"message\": \"Confirmation message for both the first and second action\"\n"
+            "}\n\n"
             f"Question: {new_state}\n\nData: {json.dumps(metadata, indent=4)}\n"
         )
+
 
 
         _LOGGER.info(f"Prepared prompt for GPT-4: {prompt}")
@@ -176,22 +205,32 @@ class OpenAssistSensor(Entity):
         if not response:
             _LOGGER.error("No response to execute")
             return
+
         try:
-            service_dict = json.loads(response)
+            response_dict = json.loads(response)
         except json.JSONDecodeError:
             _LOGGER.error("Could not decode response as JSON")
             return
-        domain = service_dict.get('domain')
-        service = service_dict.get('service')
-        entity_id = service_dict.get('entity_id')
-        data = service_dict.get('data', {})  
-        if not all([domain, service, entity_id]):
-            _LOGGER.error("Response missing required fields")
-            return
-        if 'entity_id' not in data:
-            data['entity_id'] = entity_id
-        await hass.services.async_call(domain, service, data)
 
+        actions = response_dict.get('actions')
+        if actions is None:  # if 'actions' key is not present, assume it's a single-action response
+            actions = [response_dict]  # wrap it into a list to make it compatible with the loop below
+
+        if not actions:
+            _LOGGER.error("No actions in response")
+            return
+
+        for action in actions:
+            domain = action.get('domain')
+            service = action.get('service')
+            entity_id = action.get('entity_id')
+            data = action.get('data', {})  
+            if not all([domain, service, entity_id]):
+                _LOGGER.error("Action missing required fields")
+                continue
+            if 'entity_id' not in data:
+                data['entity_id'] = entity_id
+            await hass.services.async_call(domain, service, data)
 
     async def send_notification(self, message):
         if not message:
