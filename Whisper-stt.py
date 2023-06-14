@@ -1,7 +1,3 @@
-##########################################################################################################################
-# Just a quick experiment using OpenAI TTS whisper to update the state of the OpenAssist Prompt Input Text Entity State. #
-##########################################################################################################################
-
 import pyaudio
 import openai
 import wave
@@ -9,11 +5,11 @@ import requests
 
 ######### UPDATE THESE ############
 
-HOME_ASSISTANT_URL = "https://"
+HOME_ASSISTANT_URL = "https://your_home_assistant_utl.xyz"
 
-HA_LONG_LIVED_ACCESS_TOKEN = ""
+HA_LONG_LIVED_ACCESS_TOKEN = "ey....."
 
-openai.api_key = ""
+openai.api_key = "sk-...."
 
 ###################################
 
@@ -22,7 +18,7 @@ CHUNK = 1024
 WIDTH = 2
 CHANNELS = 1
 RATE = 44100
-RECORD_SECONDS = 5
+RECORD_SECONDS = 10
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 p = pyaudio.PyAudio()
@@ -78,4 +74,6 @@ data = {
 response = requests.post(url, headers=headers, json=data)
 
 # Print the response
+print(response.text)
+
 print(response.json())
