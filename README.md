@@ -1,8 +1,16 @@
 <a href="https://www.buymeacoffee.com/hassassistant" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a><br>
 OpenAssist Beta - Home Assistant OpenAI GPT4 with Pinecone Index
 ==============================================
+
+Video Walkthrough
+-------------
+https://youtu.be/2folwIIP3ms
+
+<br>
 <br>
 
+Overview
+-------------
 ***Hey there! Just wanted to let you know that this project is still in the beta stage. Sure, it's functional, but it's got a couple of quirks (like not always finding the right entities after a query).***
 
 ***This is a one-man show and I'm knee-deep in the development process. I'm open to any ideas from the community. Your suggestions could really help in shaping this into something spectacular. So, dive in!***
