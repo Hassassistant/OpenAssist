@@ -51,7 +51,8 @@ sensor:
   - platform: openassist
     your_name: "YOUR_NAME" #Optional if you want ChatGPT to know your name.
     mindsdb_model: "gpt4hass" #MINDSDB MODEL NAME.
-    mindsdb_cookie: ".eJw9i8sKgCAUBf_...." #MINDSDB SESSION COOKIE
+    mindsdb_email: "your_email@mail.com"
+    mindsdb_password: "Your_MindsDB_Password"
     notify_device: "alexa_media_office_echo" #Optional, this sends each ChatGPT response to your notify entity.
     #Can be any of your Notify entities. (Phone, Amazon Echo etc)
 
@@ -116,7 +117,7 @@ You need to have the following accounts and their corresponding keys:
 
 -   **[Pinecone:](https://app.pinecone.io/)** You need a **Pinecone account** with an **API key**, along with the **Environment ID** (example: *us-west1-gcp-free*).
 -   **[OpenAI:](https://platform.openai.com/playground/)** You need an **OpenAI API key**, used for embedding.
--   **[MindsDB](https://mindsdb.com/):** You'll need a **MindsDB account**, a **session cookie**, and the name of your **MindsDB model**.
+-   **[MindsDB](https://mindsdb.com/):** You'll need a **MindsDB account**, and the name of your **MindsDB model**.
 
 
 
@@ -143,15 +144,6 @@ USING
 
    Click **"Run"** to execute the query and create your model.
 
-4.  Obtain your MindsDB Session Cookie for authentication within Home Assistant. Here's how:
-
-    -   Log into MindsDB and open your web browser's Inspect Element tool.
-    -   Navigate to the Network tab and refresh the webpage (F5).
-    -   Look for the **Editor** or **Home** element.
-    -   Go to the Cookies tab and copy the Session Cookie.
-        It should look something like this ***".eJw9i8sKgCAUBf_lrl2UlUY...iTsfiAsSdp0Y0yWuDsBE3vdtII"***<br>
-        
-![enter image description here](https://github.com/Hassassistant/OpenMindsAI/blob/main/misc/cookie.png?raw=true)
 
 Pinecone API Key and Environment ID
 -------------
