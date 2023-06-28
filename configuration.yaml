@@ -17,5 +17,6 @@ sensor:
   - platform: openassist
     your_name: ""
     mindsdb_model: ""
-    mindsdb_cookie: ""
+    mindsdb_email: ""
+    mindsdb_password: ""
     notify_device: ""
