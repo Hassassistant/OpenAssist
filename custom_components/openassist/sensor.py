@@ -14,13 +14,17 @@ from . import DOMAIN, EVENT_OPENASSIST_UPDATE
 
 DEFAULT_NAME = "OpenAssist Response"
 
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+#    vol.Required('mindsdb_cookie'): cv.string,
     vol.Required('mindsdb_model'): cv.string,
-    vol.Required('mindsdb_cookie'): cv.string,
+    vol.Required('mindsdb_email'): cv.string,
+    vol.Required('mindsdb_password'): cv.string,
     vol.Optional('notify_device'): cv.string,
     vol.Optional('your_name'): cv.string,
 })
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,11 +35,12 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     name = config.get(CONF_NAME, DEFAULT_NAME)
     mindsdb_model = config['mindsdb_model']
-    mindsdb_cookie = config['mindsdb_cookie']
+    mindsdb_email = config['mindsdb_email']
+    mindsdb_password = config['mindsdb_password']
     notify_device = config.get('notify_device', '')
     your_name = config.get('your_name', '')
-    
-    add_entities([OpenAssistSensor(name, mindsdb_model, mindsdb_cookie, notify_device, your_name)])
+
+    add_entities([OpenAssistSensor(name, mindsdb_model, mindsdb_email, mindsdb_password, notify_device, your_name)])
     _LOGGER.debug("OpenAssistSensor added to entities")
 
 
@@ -44,33 +49,72 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 class OpenAssistSensor(Entity):
     """Representation of an OpenAssist Sensor."""
 
+
+
+
     async def ask_mindsdb(self, prompt):
         _LOGGER.debug("Asking MindsDB")
-        url = f"https://cloud.mindsdb.com/api/projects/mindsdb/models/{self._mindsdb_model}/predict"
-        cookies = {"session": self._mindsdb_cookie}
-        data = {"data": [{"text": prompt}]}
-        headers = {"Content-Type": "application/json"}
-        
+
+        # Check if the prompt starts and ends with double quotes, if not, add them.
+        if not prompt.startswith('"'):
+            prompt = '"' + prompt
+        if not prompt.endswith('"'):
+            prompt = prompt + '"'
+
+        # Replace all double quotes except for the ones at the start and end
+        sanitized_prompt = '"' + prompt[1:-1].replace('"', '') + '"'
+
+        # Create a ClientSession that will be used for both authentication and querying
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=data, cookies=cookies, headers=headers) as resp:
-                response_json = await resp.json()
+
+            # Login
+            login_url = "https://cloud.mindsdb.com/cloud/login"
+            login_data = {
+                'email': self._mindsdb_email,
+                'password': self._mindsdb_password
+            }
+            login_response = await session.post(login_url, json=login_data)
+            
+            if login_response.status != 200:
+                _LOGGER.error(f"Login request failed with status {login_response.status}: {login_response.reason}")
+                return None
+
+            # Query MindsDB
+            query_url = 'https://cloud.mindsdb.com/api/sql/query'
+            query_data = {
+                'query': f"SELECT response from mindsdb.{self._mindsdb_model} WHERE text={sanitized_prompt};"
+            }
+            query_response = await session.post(query_url, json=query_data)
+            
+            if query_response.status != 200:
+                _LOGGER.error(f"Query request failed with status {query_response.status}: {query_response.reason}")
+                return None
+
+            response_json = await query_response.json()
+
         _LOGGER.info(f"MindsDB response: {response_json}")
+        
         try:
-            response_message = response_json[0]["response"]
-        except KeyError:
+            response_message = response_json['data'][0][0]
+        except (KeyError, IndexError):
+            _LOGGER.error(f"Unexpected response structure: {response_json}")
             response_message = None
+
         return response_message
 
 
 
-    def __init__(self, name, mindsdb_model, mindsdb_cookie, notify_device, your_name):
+
+
+    def __init__(self, name, mindsdb_model, mindsdb_email, mindsdb_password, notify_device, your_name):
         """Initialize the sensor."""
         self._state = None
         self._name = name
         self._response = None  
         self._message = None  
         self._mindsdb_model = mindsdb_model
-        self._mindsdb_cookie = mindsdb_cookie
+        self._mindsdb_email = mindsdb_email
+        self._mindsdb_password = mindsdb_password
         self._notify_device = notify_device
         self._your_name = your_name
         _LOGGER.info("OpenAssistSensor initialized")
@@ -212,6 +256,9 @@ class OpenAssistSensor(Entity):
             _LOGGER.error("Could not decode response as JSON")
             return
 
+        # Log the full response
+        _LOGGER.error(f"MindsDB response: {response_dict}")
+
         actions = response_dict.get('actions')
         if actions is None:  # if 'actions' key is not present, assume it's a single-action response
             actions = [response_dict]  # wrap it into a list to make it compatible with the loop below
@@ -231,6 +278,8 @@ class OpenAssistSensor(Entity):
             if 'entity_id' not in data:
                 data['entity_id'] = entity_id
             await hass.services.async_call(domain, service, data)
+
+
 
     async def send_notification(self, message):
         if not message:
