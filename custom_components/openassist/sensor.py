@@ -153,7 +153,7 @@ class OpenAssistSensor(Entity):
 
         
         prompt = (
-            "If the query is a generic question, respond with:\n\n"
+            "If the query is a generic question, respond with a valid JSON object:\n\n"
             "{\n"
             f"  \"message\": \"Generate a humane response (reference current user {self._your_name})\"\n"
             "}\n\n"
